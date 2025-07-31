@@ -8,7 +8,7 @@ type CardProps = {
 
 const Card = ({ card, index }: CardProps) => {
   return (
-    <Draggable draggableId={card.id} index={index}>
+    <Draggable draggableId={String(card.id)} index={index}>
       {(provided) => (
         <div
           {...provided.draggableProps}

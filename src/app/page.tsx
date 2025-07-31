@@ -1,21 +1,54 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Column from "@/components/Column";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { supabase } from '@/lib/supabaseClient';
 
 export type CardType = { id: string; text: string };
 export type ColumnType = { id: string; title: string; cards: CardType[] };
 
-const initialData: ColumnType[] = [
-  { id: 'col-1', title: '📝 Por Hacer', cards: [{ id: 'card-1', text: 'Configurar el proyecto' }, { id: 'card-2', text: 'Crear componentes estáticos' }] },
-  { id: 'col-2', title: '🚀 En Progreso', cards: [{ id: 'card-3', text: 'Conectar con Supabase' }] },
-  { id: 'col-3', title: '✅ Hecho', cards: [{ id: 'card-4', text: '¡Implementar Drag and Drop!' }] },
-];
-
 export default function Home() {
 
-  const [boardData, setBoardData] = useState(initialData);
+  const [boardData, setBoardData] = useState<ColumnType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBoardData = async () => {
+      setLoading(true);
+
+      const { data: columns, error: columnsError } = await supabase
+        .from('columns')
+        .select('*')
+        .order('position', { ascending: true });
+
+      if (columnsError) {
+        console.error('Error fetching columns:', columnsError);
+        return;
+      }
+
+      const { data: cards, error: cardsError } = await supabase
+        .from('cards')
+        .select('*');
+
+      if (cardsError) {
+        console.error('Error fetching cards:', cardsError);
+        return;
+      }
+
+      const structuredData = columns.map(column => ({
+        ...column,
+        cards: cards
+          .filter(card => card.column_id === column.id)
+          .sort((a, b) => a.position - b.position),
+      }));
+
+      setBoardData(structuredData);
+      setLoading(false);
+    };
+
+    fetchBoardData();
+  }, []);
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
@@ -31,7 +64,7 @@ export default function Home() {
       return;
     }
 
-    const newBoardData = JSON.parse(JSON.stringify(boardData));
+    const newBoardData: ColumnType[] = JSON.parse(JSON.stringify(boardData));
 
     const sourceColumn = newBoardData.find(
       (col: ColumnType) => col.id === source.droppableId
@@ -53,6 +86,24 @@ export default function Home() {
     }
 
     setBoardData(newBoardData);
+
+    const updateDatabase = async () => {
+      const cardsToUpdate = newBoardData.flatMap((column, colIndex) =>
+        column.cards.map((card, cardIndex) => ({
+          ...card,
+          position: cardIndex,
+          column_id: column.id,
+        }))
+      );
+
+      const { error } = await supabase.from('cards').upsert(cardsToUpdate);
+
+      if (error) {
+        console.error('Error updating cards:', error);
+      }
+    };
+
+    updateDatabase();
   };
 
   return (

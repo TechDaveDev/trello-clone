@@ -10,7 +10,7 @@ const Column = ({ column }: ColumnProps) => {
   return (
     <div className="bg-gray-100 p-3 rounded-lg w-72 flex-shrink-0">
       <h2 className="font-bold mb-3 text-lg">{column.title}</h2>
-      <Droppable droppableId={column.id}>
+      <Droppable droppableId={String(column.id)}>
         {(provided) => (
           <div
             {...provided.droppableProps}
