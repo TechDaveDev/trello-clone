@@ -73,19 +73,17 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex flex-col flex-grow"
+            className="flex-grow min-h-[6rem] overflow-auto pr-2"
           >
-            <div className="flex-grow min-h-[6rem] overflow-y-auto pr-2">
-              {column.cards.map((card, index) => (
-                <Card
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  deleteCard={() => deleteCard(card.id, column.id)}
-                  updateCardText={updateCardText}
-                />
-              ))}
-            </div>
+            {column.cards.map((card, index) => (
+              <Card
+                key={card.id}
+                card={card}
+                index={index}
+                deleteCard={() => deleteCard(card.id, column.id)}
+                updateCardText={updateCardText}
+              />
+            ))}
             {provided.placeholder}
           </div>
         )}

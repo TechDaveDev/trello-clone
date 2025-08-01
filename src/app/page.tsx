@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 
 import { DragDropContext } from "@hello-pangea/dnd";
+import { supabase } from "@/lib/supabaseClient";
 
 import { useBoard } from "@/lib/useBoard";
+import { useAuth } from "@/context/AuthContext";
 import Column from "@/components/Column";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
@@ -15,11 +17,11 @@ export type ColumnType = { id: string; title: string; cards: CardType[] };
 export default function Home() {
 
   const router = useRouter();
+  const { session, loading: authLoading } = useAuth();
   const [newColumnTitle, setNewColumnTitle] = useState('');
 
   const {
     boardData,
-    session,
     addColumn,
     deleteColumn,
     updateColumnTitle,
@@ -35,7 +37,13 @@ export default function Home() {
     setNewColumnTitle('');
   };
 
-  if (session === undefined) {
+  useEffect(() => {
+    if (!authLoading && !session) {
+      router.push('/login');
+    }
+  }, [session, authLoading, router]);
+
+  if (authLoading || !session) {
     return (
       <div className="bg-background h-screen flex items-center justify-center">
         <p className="text-foreground text-xl">Cargando...</p>
@@ -43,23 +51,24 @@ export default function Home() {
     );
   }
 
-  if (session === null) {
-    router.push('/login');
-    return null;
-  }
-
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <main className="bg-background text-foreground min-h-screen p-4 md:p-6">
+      <main className="bg-background text-foreground min-h-screen p-4 md:p-6 transition-colors">
         <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Mi Trello Clone</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Trello Clone</h1>
           <div className="flex items-center space-x-4">
-            <p className="hidden md:block text-sm text-foreground/70">{session?.user?.email}</p>
+            <p className="hidden md:block text-sm text-foreground/70">{session.user.email}</p>
             <ThemeSwitcher />
           </div>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="p-2 text-foreground/70 hover:bg-card rounded-md transition-colors"
+            title="Cerrar sesión"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
         </header>
-
-        <div className="flex flex-col md:flex-row md:space-x-4 items-start space-y-4 md:space-y-0 w-full overflow-x-auto pb-4">
+        <div className="flex flex-wrap justify-center gap-6">
           {boardData.map(column => (
             <Column
               key={column.id}
@@ -72,7 +81,7 @@ export default function Home() {
             />
           ))}
 
-          <div className="bg-card text-foreground p-3 rounded-lg w-full md:w-80 flex-shrink-0">
+          <div className="bg-card text-foreground p-3 rounded-lg w-full md:w-80">
             <input
               type="text"
               value={newColumnTitle}

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Session } from '@supabase/supabase-js';
+
 import { supabase } from '@/lib/supabaseClient';
-import toast from 'react-hot-toast';
 import { DropResult } from '@hello-pangea/dnd';
+import toast from 'react-hot-toast';
+
+import { useAuth } from '@/context/AuthContext';
 
 type CardType = { id: string; text: string; position: number; column_id: string; user_id: string; };
 type ColumnType = { id: string; title: string; position: number; user_id: string; cards: CardType[]; };
@@ -10,21 +12,7 @@ type ColumnType = { id: string; title: string; position: number; user_id: string
 export const useBoard = () => {
   const [boardData, setBoardData] = useState<ColumnType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null | undefined>(undefined);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, []);
+  const { session } = useAuth();
 
   const fetchBoardData = useCallback(async () => {
     if (!session) return;
@@ -58,6 +46,7 @@ export const useBoard = () => {
       fetchBoardData();
     } else {
       setBoardData([]);
+      setLoading(false);
     }
   }, [session, fetchBoardData]);
 
@@ -121,14 +110,27 @@ export const useBoard = () => {
     destCol.cards.splice(destination.index, 0, movedCard);
     setBoardData(newBoard);
 
-    const cardsToUpdate = newBoard.flatMap((col: ColumnType) => col.cards.map((card: CardType, index: number) => ({ id: card.id, position: index, column_id: col.id })));
-    await supabase.from('cards').upsert(cardsToUpdate);
+    const cardsToUpdate = newBoard.flatMap((col: ColumnType) =>
+      col.cards.map((card: CardType, index: number) => ({
+        id: card.id,
+        position: index,
+        column_id: col.id,
+        user_id: card.user_id,
+      }))
+    );
+
+    const { error } = await supabase.from('cards').upsert(cardsToUpdate);
+
+    if (error) {
+      console.error("Error detallado de Supabase:", error);
+      toast.error("No se pudo guardar el cambio.");
+    }
+
   }, [boardData]);
 
   return {
     boardData,
     loading,
-    session,
     addColumn,
     deleteColumn,
     updateColumnTitle,
