@@ -40,16 +40,16 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
   };
 
   return (
-    <div className="bg-card p-3 rounded-lg w-full md:w-72 flex-shrink-0 flex flex-col">
-      <div className="flex justify-between items-center mb-3">
+    <div className="bg-card text-foreground p-3 rounded-lg w-full md:w-80 flex-shrink-0 flex flex-col max-h-full">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
         {isEditingTitle ? (
           <input
             type="text"
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
             onBlur={handleTitleChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleTitleChange()}
-            className="font-bold text-lg w-min rounded outline-0"
+            onKeyDown={(e) => { if (e.key === 'Enter') handleTitleChange(); }}
+            className="font-bold text-lg bg-transparent border-2 border-primary rounded-md focus:outline-none w-full mr-2 p-1"
             autoFocus
           />
         ) : (
@@ -62,64 +62,70 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
         )}
         <button
           onClick={() => deleteColumn(column.id)}
-          className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-300 hover:text-gray-600"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-foreground/50 hover:bg-background hover:text-red-500 transition-colors"
         >
           🗑️
         </button>
       </div>
+
       <Droppable droppableId={String(column.id)}>
         {(provided) => (
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="min-h-[100px] flex-1"
+            className="flex flex-col flex-grow"
           >
-            {column.cards.map((card, index) => (
-              <Card
-                key={card.id}
-                card={card}
-                index={index}
-                deleteCard={() => deleteCard(card.id, column.id)}
-                updateCardText={updateCardText}
-              />
-            ))}
+            <div className="flex-grow min-h-[6rem] overflow-y-auto pr-2">
+              {column.cards.map((card, index) => (
+                <Card
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  deleteCard={() => deleteCard(card.id, column.id)}
+                  updateCardText={updateCardText}
+                />
+              ))}
+            </div>
             {provided.placeholder}
           </div>
         )}
       </Droppable>
-      {isAddingCard ? (
-        <div className="mt-3">
-          <textarea
-            className="w-full p-2 rounded border-gray-300 shadow-sm"
-            placeholder="Introduce un título para esta tarjeta..."
-            rows={3}
-            value={newCardText}
-            onChange={(e) => setNewCardText(e.target.value)}
-            autoFocus
-          />
-          <div className="mt-2 flex items-center space-x-2">
-            <button
-              onClick={handleAddCard}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Añadir Tarjeta
-            </button>
-            <button
-              onClick={() => setIsAddingCard(false)}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded"
-            >
-              Cancelar
-            </button>
+
+      <div className="mt-4 flex-shrink-0">
+        {isAddingCard ? (
+          <div>
+            <textarea
+              className="w-full p-2 rounded-md bg-background border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              placeholder="Introduce un título..."
+              rows={3}
+              value={newCardText}
+              onChange={(e) => setNewCardText(e.target.value)}
+              autoFocus
+            />
+            <div className="mt-2 flex items-center space-x-2">
+              <button
+                onClick={handleAddCard}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 transition-opacity"
+              >
+                Añadir Tarjeta
+              </button>
+              <button
+                onClick={() => setIsAddingCard(false)}
+                className="p-2 text-foreground/70 hover:bg-background rounded-md"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setIsAddingCard(true)}
-          className="mt-3 w-full text-left p-2 text-gray-500 hover:bg-gray-200 rounded"
-        >
-          + Añadir otra tarjeta
-        </button>
-      )}
+        ) : (
+          <button
+            onClick={() => setIsAddingCard(true)}
+            className="mt-2 w-full text-left p-2 text-foreground/70 hover:bg-background rounded-md transition-colors"
+          >
+            + Añadir otra tarjeta
+          </button>
+        )}
+      </div>
     </div>
   );
 };

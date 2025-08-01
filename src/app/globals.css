@@ -5,6 +5,7 @@
   --foreground: #111827;
   --primary: #2563EB;
   --card: #FFFFFF;
+  --card-item: #FFFFFF;
 }
 
 .dark {
@@ -12,13 +13,15 @@
   --foreground: #E5E7EB;
   --primary: #3B82F6;
   --card: #161B22;
+  --card-item: #21262D;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--foreground);
-  --color-card: var(--foreground);
+  --color-primary: var(--primary);
+  --color-card: var(--card);
+  --color-card-item: var(--card-item);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
