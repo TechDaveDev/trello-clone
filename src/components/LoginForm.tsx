@@ -34,7 +34,7 @@ export default function LoginForm() {
       <Auth
         supabaseClient={supabase}
         appearance={{ theme: ThemeSupa }}
-        providers={['google', 'github']}
+        providers={[]}
         theme={theme as 'light' | 'dark'}
       />
     </div>
