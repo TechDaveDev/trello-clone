@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
@@ -9,7 +9,13 @@ import { supabase } from '@/lib/supabaseClient';
 export default function LoginForm() {
   const router = useRouter();
 
+  const [theme, setTheme] = useState('light');
+
   useEffect(() => {
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         router.refresh();
@@ -29,7 +35,7 @@ export default function LoginForm() {
         supabaseClient={supabase}
         appearance={{ theme: ThemeSupa }}
         providers={['google', 'github']}
-        theme="light"
+        theme={theme as 'light' | 'dark'}
       />
     </div>
   );
