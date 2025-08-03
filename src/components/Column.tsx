@@ -80,7 +80,7 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
                 key={card.id}
                 card={card}
                 index={index}
-                deleteCard={() => deleteCard(card.id, column.id)}
+                deleteCard={() => deleteCard(String(card.id), column.id)}
                 updateCardText={updateCardText}
               />
             ))}
