@@ -1,9 +1,12 @@
 "use client";
 
-import Card from './Card';
-import { Droppable } from '@hello-pangea/dnd';
-import { ColumnType } from '@/app/page';
 import { useState } from 'react';
+
+import { Droppable } from '@hello-pangea/dnd';
+import { Plus, Trash2, X } from 'lucide-react';
+
+import { ColumnType } from '@/app/page';
+import Card from './Card';
 
 type ColumnProps = {
   column: ColumnType;
@@ -14,7 +17,7 @@ type ColumnProps = {
   updateCardText: (cardId: string, newText: string) => void;
 };
 
-const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, updateCardText }: ColumnProps) => {
+export default function Column({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, updateCardText }: ColumnProps) {
 
   const [newCardText, setNewCardText] = useState('');
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -62,9 +65,10 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
         )}
         <button
           onClick={() => deleteColumn(column.id)}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-foreground/50 hover:bg-background hover:text-red-500 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:bg-red-500/10 hover:text-red-500 transition-all duration-200"
+          title="Eliminar lista"
         >
-          🗑️
+          <Trash2 size={16} />
         </button>
       </div>
 
@@ -91,41 +95,43 @@ const Column = ({ column, addCard, deleteCard, deleteColumn, updateColumnTitle, 
 
       <div className="mt-4 flex-shrink-0">
         {isAddingCard ? (
-          <div>
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
             <textarea
-              className="w-full p-2 rounded-md bg-background border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="Introduce un título..."
+              className="w-full p-3 rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none text-sm shadow-sm"
+              placeholder="Escribe un título para esta tarjeta..."
               rows={3}
               value={newCardText}
               onChange={(e) => setNewCardText(e.target.value)}
               autoFocus
             />
-            <div className="mt-2 flex items-center space-x-2">
+            <div className="mt-2 flex items-center gap-2">
               <button
                 onClick={handleAddCard}
-                className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 transition-opacity"
+                className="px-4 py-1.5 bg-primary text-white text-sm font-bold rounded-lg hover:opacity-90 shadow-md shadow-primary/10 transition-all active:scale-95"
               >
-                Añadir Tarjeta
+                Añadir tarjeta
               </button>
               <button
                 onClick={() => setIsAddingCard(false)}
-                className="p-2 text-foreground/70 hover:bg-background rounded-md"
+                className="p-1.5 text-foreground/50 hover:bg-foreground/5 rounded-lg transition-colors"
+                title="Cancelar"
               >
-                Cancelar
+                <X size={18} />
               </button>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setIsAddingCard(true)}
-            className="mt-2 w-full text-left p-2 text-foreground/70 hover:bg-background rounded-md transition-colors"
+            className="group mt-2 w-full flex items-center gap-2 p-2 text-foreground/50 hover:bg-foreground/5 rounded-xl transition-all duration-200"
           >
-            + Añadir otra tarjeta
+            <div className="p-1 bg-foreground/5 rounded-md group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+              <Plus size={14} />
+            </div>
+            <span className="text-sm font-medium">Añadir otra tarjeta</span>
           </button>
         )}
       </div>
     </div>
   );
 };
-
-export default Column;

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 
-const ThemeSwitcher = () => {
+import { Moon, Sun } from 'lucide-react';
+
+export default function ThemeSwitcher() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -29,11 +31,14 @@ const ThemeSwitcher = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-card text-foreground hover:bg-opacity-80"
+      className="rounded-md hover:bg-card transition-colors"
+      aria-label="Toggle Theme"
     >
-      {isDarkMode ? '☀️' : '🌙'}
+      {isDarkMode ? (
+        <Moon size={20} className="p-2 box-content text-foreground/70 hover:rotate-[35deg] transition-transform duration-200" />
+      ) : (
+        <Sun size={20} className="p-2 box-content text-yellow-500 hover:rotate-[45deg] transition-transform duration-200" />
+      )}
     </button>
   );
 };
-
-export default ThemeSwitcher;

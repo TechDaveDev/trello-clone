@@ -6,6 +6,8 @@
   --primary: #2563EB;
   --card: #F1F5F9;
   --card-item: #FFFFFF;
+  --header: #FFFFFF;
+  --border: #E5E7EB;
 }
 
 .dark {
@@ -14,6 +16,8 @@
   --primary: #3B82F6;
   --card: #161B22;
   --card-item: #21262D;
+  --header: #161B22;
+  --border: #30363D;
 }
 
 @theme inline {
@@ -22,6 +26,8 @@
   --color-primary: var(--primary);
   --color-card: var(--card);
   --color-card-item: var(--card-item);
+  --color-header: var(--header);
+  --color-border: var(--border);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

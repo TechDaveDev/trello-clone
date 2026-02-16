@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 
-import { DragDropContext } from "@hello-pangea/dnd";
 import { supabase } from "@/lib/supabaseClient";
+import { DragDropContext } from "@hello-pangea/dnd";
+import { Plus, X } from "lucide-react";
 
-import { useBoard } from "@/lib/useBoard";
 import { useAuth } from "@/context/AuthContext";
+import { useBoard } from "@/lib/useBoard";
+import Header from "@/components/Header";
+import Modal from "@/components/Modal";
+import AboutContent from "@/components/AboutContent";
+import LogoutContent from "@/components/LogoutContent";
 import Column from "@/components/Column";
-import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 export type CardType = { id: string; text: string };
 export type ColumnType = { id: string; title: string; cards: CardType[] };
@@ -19,6 +23,9 @@ export default function Home() {
   const router = useRouter();
   const { session, loading: authLoading } = useAuth();
   const [newColumnTitle, setNewColumnTitle] = useState('');
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const {
     boardData,
@@ -35,6 +42,7 @@ export default function Home() {
     if (newColumnTitle.trim() === '') return;
     addColumn(newColumnTitle);
     setNewColumnTitle('');
+    setIsAdding(false);
   };
 
   useEffect(() => {
@@ -51,24 +59,18 @@ export default function Home() {
     );
   }
 
+  const handleAboutOpen = () => setIsAboutOpen(true);
+  const handleLogoutConfirm = () => setIsLogoutOpen(true);
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <main className="bg-background text-foreground min-h-screen p-4 md:p-6 transition-colors">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Trello Clone</h1>
-          <div className="flex items-center space-x-4">
-            <p className="hidden md:block text-sm text-foreground/70">{session.user.email}</p>
-            <ThemeSwitcher />
-          </div>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="p-2 text-foreground/70 hover:bg-card rounded-md transition-colors"
-            title="Cerrar sesión"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          </button>
-        </header>
-        <div className="flex flex-wrap justify-center gap-6">
+        <Header
+          onAboutClick={handleAboutOpen}
+          onLogoutConfirm={handleLogoutConfirm}
+        />
+
+        <div className="flex flex-wrap justify-center gap-6 mt-4">
           {boardData.map(column => (
             <Column
               key={column.id}
@@ -81,24 +83,77 @@ export default function Home() {
             />
           ))}
 
-          <div className="bg-card text-foreground p-3 rounded-lg w-full md:w-80">
-            <input
-              type="text"
-              value={newColumnTitle}
-              onChange={(e) => setNewColumnTitle(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAddColumn(); }}
-              placeholder="Título de la nueva columna..."
-              className="w-full p-2 bg-background border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button
-              onClick={handleAddColumn}
-              className="mt-2 w-full px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 transition-opacity"
-            >
-              Añadir Columna
-            </button>
+          <div className={`h-fit w-full md:w-80 rounded-2xl transition-all duration-300 ${newColumnTitle ? 'bg-card shadow-lg border-primary/20' : 'bg-card/40 border-2 border-dashed border-border hover:border-primary/50 hover:bg-card/60'
+            }`}>
+            <div className="p-4">
+              {!newColumnTitle && !isAdding ? (
+                <button
+                  onClick={() => setIsAdding(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2 text-foreground/50 hover:text-primary transition-colors font-medium"
+                >
+                  <Plus size={20} />
+                  <span>Añadir otra lista</span>
+                </button>
+              ) : (
+                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                  <input
+                    type="text"
+                    value={newColumnTitle}
+                    onChange={(e) => setNewColumnTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAddColumn();
+                      if (e.key === 'Escape') setIsAdding(false);
+                    }}
+                    placeholder="Introduce el título de la lista..."
+                    className="w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm shadow-sm"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleAddColumn}
+                      className="flex-1 py-2 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm"
+                    >
+                      Añadir lista
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAdding(false);
+                        setNewColumnTitle('');
+                      }}
+                      className="p-2 text-foreground/50 hover:bg-foreground/5 rounded-xl transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
       </main>
+
+      <Modal
+        isOpen={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        title="Confirmar logout"
+      >
+        <LogoutContent
+          onConfirm={() => {
+            setIsLogoutOpen(false);
+            supabase.auth.signOut();
+          }}
+          onCancel={() => setIsLogoutOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        title="Información del proyecto"
+      >
+        <AboutContent />
+      </Modal>
     </DragDropContext>
   );
 }
